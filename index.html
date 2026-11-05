@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+/* 竖屏的时候提示旋转手机 */
+@media (orientation: portrait) {
+  body {
+    display: none;
+  }
+  .rotate-tip {
+    display: flex;
+    position: fixed;
+    inset:0;
+    background:#000;
+    color:#fff;
+    font-size:22px;
+    align-items:center;
+    justify-content:center;
+    z-index:99999;
+  }
+}
+@media (orientation: landscape) {
+  .rotate-tip {
+    display: none;
+  }
+}
+</style>
+<title>老赖家族 · 线上小家</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* ========== 片头视频层 ========== */
+#videoWrap {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#introVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#skipBtn {
+  position: absolute;
+  right: 30px;
+  bottom: 40px;
+  padding: 10px 22px;
+  background: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-size: 16px;
+  display: none;
+  cursor: pointer;
+}
+
+/* ========== 加载页面 ========== */
+#loadingWrap {
+  position: fixed;
+  inset: 0;
+  background: #ffeef2;
+  z-index: 9998;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+#loadingImg {
+  width: 70%;
+  max-width: 550px;
+}
+
+.loading-text {
+  font-size: 24px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* ========== 主小家页面 ========== */
+#homeWrap {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-room {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ✨ 相识天数日历，放在横幅下方、软木板上方，适配你这张图！ */
+#dayCalendar {
+  position: fixed;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  background: rgba(255, 248, 235, 0.94);
+  border: 3px solid #f5a878;
+  border-radius: 18px;
+  padding: 14px 26px;
+  text-align: center;
+  color: #442c1c;
+  min-width: 260px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+}
+#dayCalendar h3 {
+  font-size: 1.05rem;
+  margin-bottom:6px;
+}
+#dayCalendar .day-number {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color:#e75b4b;
+}
+#dayCalendar .day-start {
+  font-size:0.86rem;
+  margin-top:4px;
+  color:#666;
+}
+
+/* 可点击热点区域，精准对齐这张图 */
+.hotspot {
+  position: absolute;
+  cursor: pointer;
+  z-index: 5;
+}
+/* 沙发上8只娃娃，从左到右 */
+.bear {
+  width:9%;
+  height:22%;
+}
+.bear-0 { left:8%; top:57%; }
+.bear-1 { left:18%; top:57%; }
+.bear-2 { left:30%; top:57%; }
+.bear-3 { left:40%; top:57%; }
+.bear-4 { left:50%; top:57%; }
+.bear-5 { left:61%; top:57%; }
+.bear-6 { left:71%; top:57%; }
+.bear-7 { left:82%; top:57%; }
+
+/* 墙上软木板 = 相册入口 */
+.feltBoard {
+  width:52%;
+  height:34%;
+  top:21%;
+  left:24%;
+}
+/* 茶几上打开的本子 = 留言入口 */
+.notebook {
+  width:20%;
+  height:10%;
+  bottom:5%;
+  left:40%;
+}
+
+/* 漂浮羽毛球 & 名牌 */
+.float-item {
+  position: absolute;
+  z-index: 4;
+  pointer-events: auto;
+}
+.badminton {
+  font-size:28px;
+}
+.nameTag {
+  padding:7px 13px;
+  background:#fff9ee;
+  border:2px solid #f5a878;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:bold;
+  color:#442c1c;
+  cursor:pointer;
+  white-space:nowrap;
+  box-shadow:0 3px 10px rgba(0,0,0,0.18);
+}
+
+/* 底部弹出一句话 */
+.tip-popup {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 26px;
+  background: #332219;
+  color: #fff;
+  border-radius: 99px;
+  font-size: 17px;
+  z-index: 90;
+  opacity: 0;
+  transition: 0.3s;
+  pointer-events: none;
+}
+.tip-popup.show {
+  opacity: 0.92;
+}
+
+/* ========== 弹窗通用样式 ========== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  width: min(92%, 820px);
+  max-height: 85vh;
+  background: #fffef9;
+  color: #222;
+  border-radius: 18px;
+  padding: 24px;
+  overflow-y: auto;
+  position: relative;
+}
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 26px;
+  cursor: pointer;
+  color: #666;
+}
+
+/* 个人简介 */
+.profile-card {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.profile-avatar {
+  width: 170px;
+  height: 170px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #eee;
+}
+.profile-info p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+.countdown {
+  color: #e76f51;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* 相册 */
+.album-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.album-tab {
+  padding: 7px 14px;
+  background: #ffedda;
+  color: #222;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.album-tab.active {
+  background: #ffb780;
+  color: #fff;
+}
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.album-grid img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* 留言板 */
+.msg-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  resize: none;
+  font-family: inherit;
+}
+.msg-send {
+  padding: 8px 16px;
+  background: #ffb780;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+.msg-list {
+  margin-top: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.msg-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+<div class="rotate-tip">请把手机横过来观看✨</div>
+
+<!-- 1. 片头视频 -->
+<div id="videoWrap">
+<video id="introVideo"playsinline>
+  <source src="intro.mp4" type="video/mp4" />
+</video>
+    <button id="playBtn">播放片头</button>
+    <button id="skipBtn">跳过 ▶</button>
+</div>
+
+<!-- 2. 加载页 -->
+<div id="loadingWrap">
+  <img id="loadingImg" src="loading.png" alt="loading" />
+  <div class="loading-text">Loading · 老赖家族出发啦✨</div>
+</div>
+
+<!-- 3. 主小家页面（就是你这张图！） -->
+<div id="homeWrap">
+  <img class="bg-room" id="homeBg" src="home_bg.jpg" alt="老赖家族小家" />
+
+  <!-- 墙上日历：老赖家族相识天数，2025-12-06起算 -->
+<div id="dayCalendar" class="familyBanner" style="cursor:pointer;">
+      <h3>老赖家族认识第</h3>
+    <div class="day-number" id="dayNumber">0</div>
+    <div class="day-start">始于 2025.12.06</div>
+  </div>
+<div class="modal" id="familyModal">
+  <div class="modal-box">
+    <button class="close-btn" id="closeFamilyModal">×</button>
+    <h3 style="text-align:center;margin-top:0;">老赖家族</h3>
+    <p>老赖家族诞生于湖南省郴州市汝城县的一所高级中学--“汝城一中”。其主要的故事线路围绕着8个高中生展开，她们分别是李欣羽、曾紫岚、何诺瑄、罗慧琳、吴冰清、陈松丽、廖乐思、宋佳欣。故事开始于2025年12月6日，也就是她们的高三时期。  
+都说高三是高中三年以来最痛苦的一年，大家都忙着搞自己的学业，不分白昼与黑夜的学习，但是老赖家族却在高三这年度过了她们高中三年最快乐的时光。老赖家族的第一张合照，追溯到2026年3月21日的高三成人礼上。这天，大家都满怀激情与热血，参加着学校举行的高三成人礼，体育馆中老师与校领导们的激情演讲以及中途分发到我们手中的《中华人民共和国宪法》是老赖家族友谊发展最好的见证。相机拍下的不仅是老赖家族的友谊，更是那段回不去的美好快乐的时光。
+或许是时间的推动，又或许是老赖家族友谊的日益浓厚，有关老赖家族故事的合照快马加鞭地发展着。在2026年的4月11日，有关“名牌撕不停，乐趣享不断”的《奔跑吧！妹古几》节目隆重推出，该节目由汝城知名品牌汝城豆腐干--“汝城豆腐干，吃出你的心酸”独家冠名播出。随着《奔跑吧！妹古几》的播出，我们不仅收获了独属于老赖家族的撕名牌合照，还获得了被称为神奇魔法的东西，那就是--        友谊。当印有每个人名字的名牌被撕下的同时，也见证了老赖家族友谊的进一步发展，名牌被撕下来所代表的并不是淘汰，而是友谊的加固。
+2026年4月18日，这是老赖家族第三次合照的时间，记得这天是星期六，是我们为数不多下午放假的日子，在这之前，我们就已经谋划好了，要在这一天一起穿上冬季校服的外套拍一组照片。下课铃声打响后，大家都拿好手机往校门口冲去，只有我们八个人在教室静静地等候，我们要等待一个最好的时机，一起拍出最具青春活力地校园合照。只见老赖家族身着一样地衣服，八个不同的面孔洋溢出同一种笑容。
+这次的合照是我们策划已久的，听说五一学校会给我们放假，所以我们打算在五一节的前一天晚上一起出去玩，这天我们刚刚开启期待已久的假期，各自回去简单收拾了一下，约定好晚上六点钟在学校门口集合。就这样七个人三辆车准备出发（这天loli回家了），尽管我们只玩了几个小时，但却是那段日子以来最快乐的时光。那天我们拍了许多照片，而如今的我们也十分感谢那天晚上我们所拍下的照片，那些照片成为了我们友谊的美好见证，也为后来异地的我们提供了回忆往昔的时光穿梭机。
+高三时光即将结束，在2026年的5月31日，我们迎来了拍高中毕业照的日子，这次的合照也是我们在学校里的最后一张合照。我们穿好夏季校服，手上戴着他们对我们的高考祝福--金榜题名手串，就像上次的约定一样，要拍下最具青春活力的照片，这天，我们找了许多老师拍合照，记录下我们三年的师生情谊。时间紧张，还有7天就是我们奔赴高考战场的日子，我们细数，我们珍重。
+时光飞逝，如马驹过隙。2026年6月9日，我们考完了最后一堂考试--政治，在离开考场休息室的那一刻，我们拍下了一张合照，我们不知道这张照片是不是我们最后的一张照片。当八个人的脸庞聚在同一个相框下时，老赖家族的美好时光在此刻形成了一个闭环，从此，美好的回忆深深地刻在了每个人的脑海中。我们欣喜着，因为在高中最难熬的这段日子里，我们成为了彼此的良药，这个良药并不苦口，反而甘甜。
+高考过后，我们各自在自己的轨道上运行着，或许是对老赖家族友谊的眷恋，又或许是为了实现高考前一天晚上我们许下的诺言--高考后我们一定要聚一次。在2026年6月11日的下午，老赖家族又聚集在一起了。我们精心打扮，开心出游，在那一天，我们凭高考准考证吃了一顿小龙虾，再一次拍下了独属于老赖家族的合照。这次的合照，是对我们坚不可摧地友谊的庆祝，也是对我们在高三相遇的欢喜。
+“后来的我们依然走着，只是不在并肩了，朝各自地人生追寻着。”每当我听到五月天的这首歌时，我心中都会无比地感慨，感慨我们老赖家族不分彼此的友谊，感慨在茫茫人海中我们竟然能相遇，甚至成为了好朋友，感慨即使我们已在不同的地方上大学却依旧天天联系的坚持。亲爱的，回忆起我们共同走过的曲折，比痛苦先到的是幸福，是我们老赖家族紧密相连的心脏。
+老赖家族的成员们，我爱你们!</p>
+  </div>
+</div>
+
+
+  <!-- 沙发8个娃娃 从左到右 -->
+  <div class="hotspot bear bear-0" data-id="0"></div>
+  <div class="hotspot bear bear-1" data-id="1"></div>
+  <div class="hotspot bear bear-2" data-id="2"></div>
+  <div class="hotspot bear bear-3" data-id="3"></div>
+  <div class="hotspot bear bear-4" data-id="4"></div>
+  <div class="hotspot bear bear-5" data-id="5"></div>
+  <div class="hotspot bear bear-6" data-id="6"></div>
+  <div class="hotspot bear bear-7" data-id="7"></div>
+
+  <!-- 墙上软木板 相册入口 -->
+  <div class="hotspot feltBoard" id="albumHot"></div>
+  <!-- 茶几书本 留言入口 -->
+  <div class="hotspot notebook" id="msgHot"></div>
+
+  <!-- 底部弹出文字 -->
+  <div class="tip-popup" id="popTip"></div>
+</div>
+
+<!-- 个人简介弹窗 -->
+<div class="modal" id="profileModal">
+  <div class="modal-box">
+    <span class="close-btn">×</span>
+    <div class="profile-card">
+      <img class="profile-avatar" id="pAvatar" alt="头像" />
+      <div class="profile-info">
+        <h2 id="pName"></h2>
+        <p>📍出生地：<span id="pBirthPlace"></span></p>
+        <p>🎂生日：<span id="pBirthday"></span></p>
+        <p>✨爱好：<span id="pHobby"></span></p>
+        <p>🎧喜欢：<span id="pLike"></span></p>
+        <p>💬口头禅：<span id="pWords"></span></p>
+        <p class="countdown">距离生日还有：<span id="pCount"></span>天</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 相册弹窗 -->
+<div class="modal" id="albumModal">
+  <div class="modal-box">
+    <span class="close-btn">×</span>
+    <div class="album-tabs" id="albumTabs"></div>
+    <div class="album-grid" id="albumGrid"></div>
+  </div>
+</div>
+
+<!-- 留言板弹窗 -->
+<div class="modal" id="msgModal">
+  <div class="modal-box">
+    <span class="close-btn">×</span>
+    <textarea class="msg-input" id="msgText" placeholder="写下你想对老赖家族说的话..."></textarea>
+    <button class="msg-send" id="sendMsg">发送留言</button>
+    <div class="msg-list" id="msgList"></div>
+  </div>
+</div>
+
+<script>
+/* ========== 8个成员信息，你可以自行修改 ========== */
+const memberList = [
+// id 0 对应 bear-0
+{
+  name: "吴冰清",
+  avatar: "wbq.png",
+  birthPlace: "江头村",
+  birthday: "2007-10-26",
+  hobby: "打羽毛球，玩游戏，看小说",
+  like: "成为一名优秀的律师",
+  words: "真是无语了",
+  tagWord: "所愿所想皆所得"
+},
+// id 1 对应 bear-1
+{
+  name: "罗慧琳",
+  avatar: "lhl.png",
+  birthPlace: "文明",
+  birthday: "2007-11-7",
+  hobby: "听歌",
+  like: "快乐地活着，能追求自己想要的",
+  words: "xswl",
+  tagWord: "保持进取，永不服输"
+},
+// id 2 对应 bear-2
+{
+  name: "陈松丽",
+  avatar: "csl.png",
+  birthPlace: "濠头",
+  birthday: "2007-12-23",
+  hobby: "喝猪猪奶茶",
+  like: "在家躺着有钱花",
+  words: "可以滴",
+  tagWord: "牛逼，又活了一天"
+},
+// id 3 对应 bear-3
+{
+  name: "何诺瑄",
+  avatar: "hnx.png",
+  birthPlace: "土桥",
+  birthday: "2007-12-25",
+  hobby: "看书",
+  like: "到处旅游",
+  words: "ohno",
+  tagWord: "青衿之志，履践致远"
+},
+// id 4 对应 bear-4
+{
+  name: "曾紫岚",
+  avatar: "zzl.png",
+  birthPlace: "马桥",
+  birthday: "2008-1-14",
+  hobby: "胡思乱想",
+  like: "有钱",
+  words: "神经病",
+  tagWord: "别胡思乱想了，这样不会有钱的"
+},
+// id 5 对应 bear-5
+{
+  name: "宋佳欣",
+  avatar: "sjx.png",
+  birthPlace: "泉水",
+  birthday: "2008-5-13",
+  hobby: "和老赖家族待在一起",
+  like: "和朋友穷游",
+  words: "我发现我今天又变漂亮了一点",
+  tagWord: "拥有被讨厌的勇气，知足常乐，和朋友一起"
+},
+// id 6 对应 bear-6
+{
+  name: "李欣羽",
+  avatar: "lxy.png",
+  birthPlace: "大坪",
+  birthday: "2008-6-12",
+  hobby: "追星",
+  like: "想去线下见我家产",
+  words: "我的妈呀，大姐",
+  tagWord: "心宽福自来"
+},
+// id 7 对应 bear-7
+{
+  name: "廖乐思",
+  avatar: "lls.png",
+  birthPlace: "廖家村",
+  birthday: "2008-7-9",
+  hobby: "看小说",
+  like: "躺着赚钱",
+  words: "蛙趣",
+  tagWord: "你已经做得很好了"
+}
+];
+
+/* ========== 相册分类，后续在这里加图片链接 ========== */
+const albumData = {
+  "撕名牌": [],
+  "龙王庙": [],
+  "高考": [],
+  "小龙虾": [],
+  "其他": []
+};
+
+/* ========== 相识天数计算 固定起始2025-12-06 ========== */
+const startDate = new Date("2025-12-06");
+const now = new Date();
+const diffTime = now - startDate;
+const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+document.getElementById("dayNumber").textContent = diffDays;
+
+/* ========== 片头视频逻辑 ========== */
+const videoWrap = document.getElementById("videoWrap");
+const video = document.getElementById("introVideo");
+const skipBtn = document.getElementById("skipBtn");
+const loadingWrap = document.getElementById("loadingWrap");
+const homeWrap = document.getElementById("homeWrap");
+
+let isFirst = localStorage.getItem("firstVisit") !== "false";
+if (isFirst) {
+  video.play().catch(() => {});
+  localStorage.setItem("firstVisit", "false");
+} else {
+  skipBtn.style.display = "block";
+}
+
+video.onended = () => {
+  videoWrap.style.display = "none";
+  loadingWrap.style.display = "flex";
+  setTimeout(() => {
+    loadingWrap.style.display = "none";
+    homeWrap.style.display = "block";
+    startFloat();
+  }, 1800);
+};
+skipBtn.onclick = () => {
+  video.pause();
+  videoWrap.style.display = "none";
+  loadingWrap.style.display = "flex";
+  setTimeout(() => {
+    loadingWrap.style.display = "none";
+    homeWrap.style.display = "block";
+    startFloat();
+  }, 1800);
+};
+
+/* ========== 漂浮多彩羽毛球 + 可点击名牌（慢速飘动） ========== */
+function startFloat() {
+  const homeWrap = document.getElementById("homeWrap");
+  const colors = ["#ff9494", "#ffd384", "#94b4ff", "#b4ffb8", "#e1b4ff", "#a5f3fc", "#fbcfe8"];
+  // 多彩羽毛球
+  for (let i = 0; i < 14; i++) {
+    const b = document.createElement("div");
+    b.className = "float-item badminton";
+    b.textContent = "🏸";
+    b.style.left = Math.random() * 90 + "%";
+    b.style.top = Math.random() * 90 + "%";
+    b.style.color = colors[i % colors.length];
+    homeWrap.appendChild(b);
+    slowFloat(b, 20000 + Math.random() * 9000);
+  }
+  // 8个人名牌
+  memberList.forEach((m, idx) => {
+    const tag = document.createElement("div");
+    tag.className = "float-item nameTag";
+    tag.textContent = m.name;
+    tag.style.left = Math.random() * 82 + "%";
+    tag.style.top = Math.random() * 82 + "%";
+    tag.onclick = () => showTip(m.tagWord);
+    homeWrap.appendChild(tag);
+    slowFloat(tag, 24000 + Math.random() * 10000);
+  });
+}
+// 缓慢无规则飘动
+function slowFloat(el, duration) {
+  let x = parseFloat(el.style.left) || Math.random() * 80;
+  let y = parseFloat(el.style.top) || Math.random() * 80;
+  let vx = (Math.random() - 0.5) * 0.032;
+  let vy = (Math.random() - 0.5) * 0.032;
+  function move() {
+    x += vx;
+    y += vy;
+    if (x < 0 || x > 92) vx *= -1;
+    if (y < 0 || y > 86) vy *= -1;
+    el.style.left = x + "%";
+    el.style.top = y + "%";
+    requestAnimationFrame(move);
+  }
+  move();
+}
+
+/* ========== 弹出提示文字 ========== */
+function showTip(txt) {
+  const pop = document.getElementById("popTip");
+  pop.textContent = txt;
+  pop.classList.add("show");
+  setTimeout(() => pop.classList.remove("show"), 2200);
+}
+
+/* ========== 生日倒计时 ========== */
+function getCountdown(birthStr) {
+  const b = new Date(birthStr);
+  const now = new Date();
+  let thisYearBirth = new Date(now.getFullYear(), b.getMonth(), b.getDate());
+  if (thisYearBirth < now) {
+    thisYearBirth = new Date(now.getFullYear() + 1, b.getMonth(), b.getDate());
+  }
+  const diff = Math.ceil((thisYearBirth - now) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+/* ========== 打开个人简介弹窗 ========== */
+const bears = document.querySelectorAll(".bear");
+const profileModal = document.getElementById("profileModal");
+const closeBtns = document.querySelectorAll(".close-btn");
+
+// 先全部清空旧点击，防止叠加！
+bears.forEach(bear => {
+  bear.onclick = null;
+  bear.onclick = () => {
+    const id = bear.dataset.id;
+    const info = memberList[id];
+    if (!info) return;
+
+    document.getElementById("pAvatar").src = info.avatar;
+    document.getElementById("pName").textContent = info.name;
+    document.getElementById("pBirthPlace").textContent = info.birthPlace;
+    document.getElementById("pBirthday").textContent = info.birthday;
+    document.getElementById("pCount").textContent = getCountdown(info.birthday);
+    document.getElementById("pHobby").textContent = info.hobby;
+    document.getElementById("pLike").textContent = info.like;
+    document.getElementById("pWords").textContent = info.words;
+    profileModal.style.display = "flex";
+  };
+});
+
+closeBtns.forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
+  };
+});
+
+/* ========== 相册弹窗 ========== */
+const albumModal = document.getElementById("albumModal");
+const albumTabs = document.getElementById("albumTabs");
+const albumGrid = document.getElementById("albumGrid");
+document.getElementById("albumHot").onclick = () => {
+  albumModal.style.display = "flex";
+  renderAlbum("合照");
+};
+function renderAlbum(activeKey) {
+  albumTabs.innerHTML = "";
+  albumGrid.innerHTML = "";
+  Object.keys(albumData).forEach(key => {
+    const tab = document.createElement("div");
+    tab.className = "album-tab" + (key === activeKey ? " active" : "");
+    tab.textContent = key;
+    tab.onclick = () => renderAlbum(key);
+    albumTabs.appendChild(tab);
+  });
+  albumData[activeKey].forEach(imgSrc => {
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    img.alt = "照片";
+    albumGrid.appendChild(img);
+  });
+}
+
+/* ========== 留言板（本地保存，刷新不丢） ========== */
+const msgModal = document.getElementById("msgModal");
+const msgHot = document.getElementById("msgHot");
+const msgText = document.getElementById("msgText");
+const sendMsg = document.getElementById("sendMsg");
+const msgList = document.getElementById("msgList");
+msgHot.onclick = () => {
+  msgModal.style.display = "flex";
+  renderMsg();
+};
+function renderMsg() {
+  const allMsg = JSON.parse(localStorage.getItem("familyMsg") || "[]");
+  msgList.innerHTML = "";
+  allMsg.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "msg-item";
+    div.textContent = item;
+    msgList.appendChild(div);
+  });
+}
+sendMsg.onclick = () => {
+  const val = msgText.value.trim();
+  if (!val) return;
+  const arr = JSON.parse(localStorage.getItem("familyMsg") || "[]");
+  arr.push(val);
+  localStorage.setItem("familyMsg", JSON.stringify(arr));
+  msgText.value = "";
+  renderMsg();
+};
+const introVideo = document.getElementById('introVideo');
+const playBtn = document.getElementById('playBtn');
+playBtn.onclick = ()=>{
+  introVideo.play();
+  playBtn.style.display="none"; //点播放之后，隐藏播放按钮
+}
+// 老赖家族横幅弹窗
+const banner = document.querySelector('.familyBanner');
+const familyModal = document.getElementById('familyModal');
+const closeFamilyModal = document.getElementById('closeFamilyModal');
+
+banner.onclick = function () {
+  familyModal.style.display = 'flex';
+}
+closeFamilyModal.onclick = function () {
+  familyModal.style.display = 'none';
+}
+// 点黑色遮罩关闭弹窗
+familyModal.onclick = function (e) {
+  if (e.target === familyModal) {
+    familyModal.style.display = 'none';
+  }
+}
+
+</script>
+</body>
+</html>
